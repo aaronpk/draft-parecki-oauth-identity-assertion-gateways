@@ -2,7 +2,7 @@
 title: "Identity Assertion Authorization Grant for Gateways"
 abbrev: "ID-JAG for Gateways"
 category: std
-docname: draft-parecki-oauth-identity-assertion-gateways-00
+docname: draft-parecki-oauth-identity-assertion-gateways-latest
 submissiontype: IETF
 number:
 date: 2026-09-02
