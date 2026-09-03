@@ -17,6 +17,8 @@ Identity Assertion Authorization Grant that was issued to it as the subject toke
 in return an Identity Assertion Authorization Grant for a Resource Authorization Server behind
 it. It additionally defines an optional token exchange that allows a gateway's authorization
 server and resource server to be operated as separate deployments. 
+       To allow sender-constrained tokens to be used across a gateway, which is necessarily a different
+sender from the client, this specification also defines the  aud_cnf  claim. 
        Neither the client nor the Resource Authorization Server is affected by this extension. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
@@ -24,7 +26,7 @@ server and resource server to be operated as separate deployments.
 <meta content="cross app access" name="keyword">
 <meta content="gateway" name="keyword">
 <meta content="token exchange" name="keyword">
-<meta content="draft-parecki-oauth-identity-assertion-gateways-00" name="ietf.draft">
+<meta content="draft-parecki-oauth-identity-assertion-gateways-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.34.0
     Python 3.14.7
@@ -1068,7 +1070,7 @@ svg {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">Web Authorization Protocol</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-parecki-oauth-identity-assertion-gateways-00</dd>
+<dd class="internet-draft">draft-parecki-oauth-identity-assertion-gateways-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
 <time datetime="2026-09-02" class="published">2 September 2026</time>
@@ -1099,7 +1101,9 @@ Identity Assertion Authorization Grant that was issued to it as the subject toke
 in return an Identity Assertion Authorization Grant for a Resource Authorization Server behind
 it. It additionally defines an optional token exchange that allows a gateway's authorization
 server and resource server to be operated as separate deployments.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
-<p id="section-abstract-3">Neither the client nor the Resource Authorization Server is affected by this extension.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">To allow sender-constrained tokens to be used across a gateway, which is necessarily a different
+sender from the client, this specification also defines the <code>aud_cnf</code> claim.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+<p id="section-abstract-4">Neither the client nor the Resource Authorization Server is affected by this extension.<a href="#section-abstract-4" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1191,93 +1195,133 @@ server and resource server to be operated as separate deployments.<a href="#sect
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-retaining-the-identity-asse" class="internal xref">Retaining the Identity Assertion</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-upstream-token-request" class="internal xref">Upstream Token Request</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-sender-constrained-assertio" class="internal xref">Sender-Constrained Assertions</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
-                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-request-2" class="internal xref">Request</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-the-aud_cnf-claim" class="internal xref">The <code>aud_cnf</code> Claim</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
-                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-processing" class="internal xref">Processing</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-populating-aud_cnf" class="internal xref">Populating <code>aud_cnf</code></a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
-                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-response-2" class="internal xref">Response</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-presenting-a-sender-constra" class="internal xref">Presenting a Sender-Constrained Assertion</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-binding-of-the-issued-asser" class="internal xref">Binding of the Issued Assertion</a></p>
 </li>
             </ul>
 </li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-retaining-the-identity-asse" class="internal xref">Retaining the Identity Assertion</a></p>
+</li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-upstream-token-request" class="internal xref">Upstream Token Request</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-restriction-to-assertions-i" class="internal xref">Restriction to assertions issued to the Gateway</a></p>
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-request-2" class="internal xref">Request</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
-                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-chain-depth" class="internal xref">Chain depth</a></p>
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-processing" class="internal xref">Processing</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
-                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-aggregation-of-authority-at" class="internal xref">Aggregation of authority at the Gateway</a></p>
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-response-2" class="internal xref">Response</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4">
-                <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-no-refresh-tokens" class="internal xref">No refresh tokens</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.5">
-                <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-subject-binding-of-cached-t" class="internal xref">Subject binding of cached tokens</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.6">
-                <p id="section-toc.1-1.6.2.6.1"><a href="#section-6.6" class="auto internal xref">6.6</a>.  <a href="#name-audience-of-tokens-issued-b" class="internal xref">Audience of tokens issued by the Gateway</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.7">
-                <p id="section-toc.1-1.6.2.7.1"><a href="#section-6.7" class="auto internal xref">6.7</a>.  <a href="#name-client-authentication-at-th" class="internal xref">Client authentication at the Identity Provider</a></p>
+                <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-sender-constrained-upstream" class="internal xref">Sender-Constrained Upstream Tokens</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-restriction-to-assertions-i" class="internal xref">Restriction to assertions issued to the Gateway</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-chain-depth" class="internal xref">Chain depth</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-aggregation-of-authority-at" class="internal xref">Aggregation of authority at the Gateway</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
+                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-no-refresh-tokens" class="internal xref">No refresh tokens</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.5">
+                <p id="section-toc.1-1.7.2.5.1"><a href="#section-7.5" class="auto internal xref">7.5</a>.  <a href="#name-subject-binding-of-cached-t" class="internal xref">Subject binding of cached tokens</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.6">
+                <p id="section-toc.1-1.7.2.6.1"><a href="#section-7.6" class="auto internal xref">7.6</a>.  <a href="#name-audience-of-tokens-issued-b" class="internal xref">Audience of tokens issued by the Gateway</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.7">
+                <p id="section-toc.1-1.7.2.7.1"><a href="#section-7.7" class="auto internal xref">7.7</a>.  <a href="#name-dual-binding-of-the-clients" class="internal xref">Dual binding of the Client's assertion</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.8">
+                <p id="section-toc.1-1.7.2.8.1"><a href="#section-7.8" class="auto internal xref">7.8</a>.  <a href="#name-key-ownership-within-a-gate" class="internal xref">Key ownership within a Gateway</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.9">
+                <p id="section-toc.1-1.7.2.9.1"><a href="#section-7.9" class="auto internal xref">7.9</a>.  <a href="#name-client-authentication-at-th" class="internal xref">Client authentication at the Identity Provider</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-references" class="internal xref">References</a></p>
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
-                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-json-web-token-claims-regis" class="internal xref">JSON Web Token Claims Registration</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
-                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-oauth-parameters-registrati" class="internal xref">OAuth Parameters Registration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-no-new-token-type-identifie" class="internal xref">No new token type identifiers</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-design-rationale" class="internal xref">Design Rationale</a></p>
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-references" class="internal xref">References</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
-                <p id="section-toc.1-1.9.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-burden-of-implementation" class="internal xref">Burden of implementation</a></p>
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
-                <p id="section-toc.1-1.9.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-why-the-assertion-and-not-a" class="internal xref">Why the assertion, and not an access token</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
-                <p id="section-toc.1-1.9.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-why-the-gateway-holds-nothi" class="internal xref">Why the Gateway holds nothing durable</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4">
-                <p id="section-toc.1-1.9.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-absence-of-the-user-is-the-" class="internal xref">Absence of the user is the Client's problem, already solved</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.5">
-                <p id="section-toc.1-1.9.2.5.1"><a href="#appendix-A.5" class="auto internal xref">A.5</a>.  <a href="#name-why-the-gateway-has-no-inde" class="internal xref">Why the Gateway has no independent authority</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.6">
-                <p id="section-toc.1-1.9.2.6.1"><a href="#appendix-A.6" class="auto internal xref">A.6</a>.  <a href="#name-separability-of-the-gateway" class="internal xref">Separability of the Gateway's components</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.7">
-                <p id="section-toc.1-1.9.2.7.1"><a href="#appendix-A.7" class="auto internal xref">A.7</a>.  <a href="#name-reuse-of-the-assertion" class="internal xref">Reuse of the assertion</a></p>
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.10.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-design-rationale" class="internal xref">Design Rationale</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-burden-of-implementation" class="internal xref">Burden of implementation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-why-the-assertion-and-not-a" class="internal xref">Why the assertion, and not an access token</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
+                <p id="section-toc.1-1.10.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-why-the-gateway-holds-nothi" class="internal xref">Why the Gateway holds nothing durable</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.4">
+                <p id="section-toc.1-1.10.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-absence-of-the-user-is-the-" class="internal xref">Absence of the user is the Client's problem, already solved</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.5">
+                <p id="section-toc.1-1.10.2.5.1"><a href="#appendix-A.5" class="auto internal xref">A.5</a>.  <a href="#name-why-the-gateway-has-no-inde" class="internal xref">Why the Gateway has no independent authority</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.6">
+                <p id="section-toc.1-1.10.2.6.1"><a href="#appendix-A.6" class="auto internal xref">A.6</a>.  <a href="#name-separability-of-the-gateway" class="internal xref">Separability of the Gateway's components</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.7">
+                <p id="section-toc.1-1.10.2.7.1"><a href="#appendix-A.7" class="auto internal xref">A.7</a>.  <a href="#name-sender-constraining-across-" class="internal xref">Sender constraining across a change of sender</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.8">
+                <p id="section-toc.1-1.10.2.8.1"><a href="#appendix-A.8" class="auto internal xref">A.8</a>.  <a href="#name-reuse-of-the-assertion" class="internal xref">Reuse of the assertion</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.11.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1305,6 +1349,18 @@ Identity Provider, because the Identity Provider cannot validate a token it did 
 ID-JAG that the client redeemed at the gateway can, because the Identity Provider issued it.
 This specification defines how a gateway presents that assertion to obtain a further assertion
 for a resource behind it.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5"><span>[<a href="#I-D.ietf-oauth-identity-assertion-authz-grant" class="cite xref">I-D.ietf-oauth-identity-assertion-authz-grant</a>]</span> allows an ID-JAG to be sender-constrained, by
+binding it to a key with the <code>cnf</code> claim of <span>[<a href="#RFC7800" class="cite xref">RFC7800</a>]</span> and requiring proof of possession of that
+key when the assertion is used. A gateway is necessarily a different sender from the client: it
+presents the upstream grant over its own connection, to its own endpoint, and it does not hold the
+client's key. Tokens on the upstream side of a gateway are therefore bound to the gateway's key
+rather than the client's, which is what sender constraining means when the sender legitimately
+changes.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">That leaves exactly one artifact that two different senders must be able to present: the assertion
+the client redeems at the gateway, which the gateway then presents as a subject token. This
+specification defines the <code>aud_cnf</code> claim (<a href="#sender-constrained" class="auto internal xref">Section 4</a>) so that such an assertion can
+name both keys, each authorized for a different use, rather than having its binding waived for one
+of them.<a href="#section-1-6" class="pilcrow">¶</a></p>
 <div id="conventions-and-terminology">
 <section id="section-1.1">
         <h3 id="name-conventions-and-terminology">
@@ -1420,12 +1476,16 @@ an ID-JAG whose audience is the Resource Authorization Server. This is <span cla
         <dd class="break"></dd>
 <dt id="section-2-4.3">(6):</dt>
         <dd style="margin-left: 1.5em" id="section-2-4.4">
-          <p id="section-2-4.4.1">The Upstream Token Request (<a href="#upstream-request" class="auto internal xref">Section 5</a>), in which the Gateway Resource Server
-obtains an upstream access token from the Gateway Authorization Server. This is <span class="bcp14">OPTIONAL</span>, and
-is only necessary when the two components are separate deployments.<a href="#section-2-4.4.1" class="pilcrow">¶</a></p>
+          <p id="section-2-4.4.1">The Upstream Token Request (<a href="#upstream-request" class="auto internal xref">Section 6</a>), in which the Gateway Resource Server
+obtains an upstream token from the Gateway Authorization Server. This is <span class="bcp14">OPTIONAL</span>, and is only
+necessary when the two components are separate deployments.<a href="#section-2-4.4.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
+<p id="section-2-5">Additionally, when sender-constrained tokens are in use, the assertion issued in (1) carries the
+<code>aud_cnf</code> claim defined in <a href="#sender-constrained" class="auto internal xref">Section 4</a>. This changes what the Identity Provider puts in
+the assertion, but not the request the Client makes for it, nor anything the Client does with it: a
+Client neither populates nor inspects this claim.<a href="#section-2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="chained-request">
@@ -1493,13 +1553,23 @@ new ID-JAG is requested.<a href="#section-3.1-2.10.1" class="pilcrow">¶</a></p>
           <dd style="margin-left: 1.5em" id="section-3.1-2.16">
             <p id="section-3.1-2.16.1"><span class="bcp14">OPTIONAL</span>. As defined in <span>[<a href="#I-D.ietf-oauth-identity-assertion-authz-grant" class="cite xref">I-D.ietf-oauth-identity-assertion-authz-grant</a>]</span>.<a href="#section-3.1-2.16.1" class="pilcrow">¶</a></p>
 </dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-2.17">
+<code>dpop_jkt</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-2.18">
+            <p id="section-3.1-2.18.1"><span class="bcp14">OPTIONAL</span>. The JWK SHA-256 Thumbprint of the key to which the issued assertion is to be bound,
+as defined in Section 10 of <span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>. Used when the party that will present the issued
+assertion is not the party making this request. See <a href="#binding-issued" class="auto internal xref">Section 4.4</a>.<a href="#section-3.1-2.18.1" class="pilcrow">¶</a></p>
+</dd>
         <dd class="break"></dd>
 </dl>
 <p id="section-3.1-3">The Gateway Authorization Server <span class="bcp14">MUST</span> authenticate to the Identity Provider's token endpoint
 using a client identity registered with the Identity Provider for that purpose. The <code>actor_token</code>
 parameter of <span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span> is not used; the acting party is established by client authentication.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.1-4">The following is a non-normative example. Line breaks are for display purposes only.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
-<div class="lang-http-message sourcecode" id="section-3.1-5">
+<p id="section-3.1-4">When the <code>subject_token</code> is sender-constrained, the Gateway Authorization Server <span class="bcp14">MUST</span> also include
+a DPoP proof as described in <a href="#presenting" class="auto internal xref">Section 4.3</a>.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.1-5">The following is a non-normative example. Line breaks are for display purposes only.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
+<div class="lang-http-message sourcecode" id="section-3.1-6">
 <pre>
 POST /oauth2/token HTTP/1.1
 Host: idp.example
@@ -1515,7 +1585,7 @@ grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange
 &amp;client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3A
    client-assertion-type%3Ajwt-bearer
 &amp;client_assertion=eyJhbGciOiJSUzI1NiIsImtpZCI6ImdhdGV3...
-</pre><a href="#section-3.1-5" class="pilcrow">¶</a>
+</pre><a href="#section-3.1-6" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
@@ -1541,18 +1611,23 @@ audience identifies any other party. This is what distinguishes a Gateway redeem
 assertion issued to it from an unrelated party replaying an assertion it observed.<a href="#section-3.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.2-2.4">
-            <p id="section-3.2-2.4.1">Verify, according to policy configured by the Identity Provider's administrator, that the
-authenticated client is permitted to act as a Gateway for the requested <code>audience</code>, for the
-subject identified by the <code>subject_token</code>, and for the client identified by the <code>client_id</code>
-claim of the <code>subject_token</code>.<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-3.2-2.4.1">If the <code>subject_token</code> contains a <code>cnf</code> claim, verify the DPoP proof against its <code>aud_cnf</code>
+claim as described in <a href="#presenting" class="auto internal xref">Section 4.3</a>. An Identity Provider <span class="bcp14">MUST NOT</span> accept a
+sender-constrained <code>subject_token</code> without such verification.<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.2-2.5">
-            <p id="section-3.2-2.5.1">Verify that the requested <code>audience</code> does not identify an authorization server operated by
-the authenticated client, so that an assertion cannot be chained to itself.<a href="#section-3.2-2.5.1" class="pilcrow">¶</a></p>
+            <p id="section-3.2-2.5.1">Verify, according to policy configured by the Identity Provider's administrator, that the
+authenticated client is permitted to act as a Gateway for the requested <code>audience</code>, for the
+subject identified by the <code>subject_token</code>, and for the client identified by the <code>client_id</code>
+claim of the <code>subject_token</code>.<a href="#section-3.2-2.5.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.2-2.6">
-            <p id="section-3.2-2.6.1">Unless the Identity Provider's policy explicitly permits a longer chain, reject a
-<code>subject_token</code> that already contains an <code>act</code> claim. See <a href="#chain-depth" class="auto internal xref">Section 6.2</a>.<a href="#section-3.2-2.6.1" class="pilcrow">¶</a></p>
+            <p id="section-3.2-2.6.1">Verify that the requested <code>audience</code> does not identify an authorization server operated by
+the authenticated client, so that an assertion cannot be chained to itself.<a href="#section-3.2-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-3.2-2.7">
+            <p id="section-3.2-2.7.1">Unless the Identity Provider's policy explicitly permits a longer chain, reject a
+<code>subject_token</code> that already contains an <code>act</code> claim. See <a href="#chain-depth" class="auto internal xref">Section 7.2</a>.<a href="#section-3.2-2.7.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-3.2-3">If any of these steps fails, the Identity Provider <span class="bcp14">MUST</span> respond with an error as described in
@@ -1597,14 +1672,29 @@ Gateway, not the original Client, is the client that will present this grant.<a 
 </dd>
           <dd class="break"></dd>
 <dt id="section-3.3-3.7">
-<code>act</code>:</dt>
+<code>cnf</code>:</dt>
           <dd style="margin-left: 1.5em" id="section-3.3-3.8">
-            <p id="section-3.3-3.8.1">The Identity Provider <span class="bcp14">SHOULD</span> include an <code>act</code> claim, as defined in <span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span>, identifying
+            <p id="section-3.3-3.8.1">If the <code>subject_token</code> was sender-constrained, <span class="bcp14">MUST</span> bind the issued assertion to the key
+determined as described in <a href="#binding-issued" class="auto internal xref">Section 4.4</a>, which is the key of the party that will present
+it upstream and not the key in the <code>cnf</code> claim of the <code>subject_token</code>.<a href="#section-3.3-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.3-3.9">
+<code>aud_cnf</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.3-3.10">
+            <p id="section-3.3-3.10.1"><span class="bcp14">MUST NOT</span> be present, unless the Identity Provider's policy permits a further Gateway hop for the
+requested <code>audience</code>. See <a href="#chain-depth" class="auto internal xref">Section 7.2</a>.<a href="#section-3.3-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.3-3.11">
+<code>act</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.3-3.12">
+            <p id="section-3.3-3.12.1">The Identity Provider <span class="bcp14">SHOULD</span> include an <code>act</code> claim, as defined in <span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span>, identifying
 the Gateway as the acting party. Because <code>act</code> is <span class="bcp14">OPTIONAL</span> in
 <span>[<a href="#I-D.ietf-oauth-identity-assertion-authz-grant" class="cite xref">I-D.ietf-oauth-identity-assertion-authz-grant</a>]</span>, a Resource Authorization Server that does
 not implement this specification will ignore it, so including it does not affect
 interoperability. The Identity Provider <span class="bcp14">MAY</span> nest within it a further <code>act</code> claim identifying
-the original Client, to express the full delegation chain.<a href="#section-3.3-3.8.1" class="pilcrow">¶</a></p>
+the original Client, to express the full delegation chain.<a href="#section-3.3-3.12.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1669,245 +1759,546 @@ used to enumerate the resources of an organization.<a href="#section-3.4-3" clas
 </div>
 </section>
 </div>
-<div id="retention">
+<div id="sender-constrained">
 <section id="section-4">
-      <h2 id="name-retaining-the-identity-asse">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-retaining-the-identity-asse" class="section-name selfRef">Retaining the Identity Assertion</a>
+      <h2 id="name-sender-constrained-assertio">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-sender-constrained-assertio" class="section-name selfRef">Sender-Constrained Assertions</a>
       </h2>
-<p id="section-4-1">In order to make a Chained Identity Assertion Request at the time a resource request arrives, a
-Gateway Authorization Server needs the assertion it was given. Therefore:<a href="#section-4-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-4-2.1">
-          <p id="section-4-2.1.1">A Gateway Authorization Server <span class="bcp14">MUST</span> associate the ID-JAG it received from the Client with the
-access token it issues in exchange, so that the assertion can be used to satisfy later
-requests made with that access token.<a href="#section-4-2.1.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-4-2.2">
-          <p id="section-4-2.2.1">A Gateway Authorization Server <span class="bcp14">MUST NOT</span> issue an access token whose expiration is later than
-the expiration of the ID-JAG it was presented, unless it has already obtained the upstream
-access tokens that the access token will be used to reach. An access token that outlives the
-assertion behind it cannot be honored.<a href="#section-4-2.2.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-4-2.3">
-          <p id="section-4-2.3.1">A Gateway Authorization Server <span class="bcp14">SHOULD</span> reject an ID-JAG that it has already redeemed, so that
-the Client presents a freshly issued assertion. <span>[<a href="#I-D.ietf-oauth-identity-assertion-authz-grant" class="cite xref">I-D.ietf-oauth-identity-assertion-authz-grant</a>]</span>
-permits a Client to replay an ID-JAG to obtain a new access token, and an assertion that has
-expired in the interim cannot be used as a subject token.<a href="#section-4-2.3.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="section-4-3">A Gateway Authorization Server <span class="bcp14">MUST NOT</span> retain the ID-JAG beyond the lifetime of the access
-tokens issued in exchange for it.<a href="#section-4-3" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="upstream-request">
-<section id="section-5">
-      <h2 id="name-upstream-token-request">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-upstream-token-request" class="section-name selfRef">Upstream Token Request</a>
-      </h2>
-<p id="section-5-1">This section is <span class="bcp14">OPTIONAL</span> to implement. It is required only when the Gateway Authorization Server
-and the Gateway Resource Server are separate deployments.<a href="#section-5-1" class="pilcrow">¶</a></p>
-<p id="section-5-2">Whether an authorization server is operated separately from its resource server is a private
-matter between those two components, and <span class="bcp14">MUST NOT</span> change the behavior of any other party. A
-Gateway Resource Server therefore obtains an upstream access token from its own authorization
-server using a token exchange request <span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span>, which collapses to an internal operation when
-the two components are a single deployment.<a href="#section-5-2" class="pilcrow">¶</a></p>
-<div id="request-1">
-<section id="section-5.1">
-        <h3 id="name-request-2">
-<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-request-2" class="section-name selfRef">Request</a>
+<p id="section-4-1"><span>[<a href="#I-D.ietf-oauth-identity-assertion-authz-grant" class="cite xref">I-D.ietf-oauth-identity-assertion-authz-grant</a>]</span> allows an ID-JAG to be bound to a key using the
+<code>cnf</code> claim of <span>[<a href="#RFC7800" class="cite xref">RFC7800</a>]</span>, in which case proof of possession of that key must be demonstrated when
+the assertion is used. A Gateway does not hold the Client's key, so it cannot demonstrate
+possession of the key in the <code>cnf</code> claim of the assertion it received.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">An Identity Provider <span class="bcp14">MUST NOT</span> resolve this by accepting a sender-constrained <code>subject_token</code>
+without proof of possession, which would leave the assertion effectively unbound. Instead, an
+assertion whose audience is a Gateway names a second key, authorized for the single additional use
+the Gateway makes of it.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<div id="aud-cnf">
+<section id="section-4.1">
+        <h3 id="name-the-aud_cnf-claim">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-the-aud_cnf-claim" class="section-name selfRef">The <code>aud_cnf</code> Claim</a>
         </h3>
-<span class="break"></span><dl class="dlParallel" id="section-5.1-1">
-          <dt id="section-5.1-1.1">
-<code>grant_type</code>:</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-1.2">
-            <p id="section-5.1-1.2.1"><span class="bcp14">REQUIRED</span>. Value <span class="bcp14">MUST</span> be <code>urn:ietf:params:oauth:grant-type:token-exchange</code>.<a href="#section-5.1-1.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-1.3">
-<code>subject_token</code>:</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-1.4">
-            <p id="section-5.1-1.4.1"><span class="bcp14">REQUIRED</span>. The access token that the Client presented to the Gateway Resource Server.<a href="#section-5.1-1.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-1.5">
-<code>subject_token_type</code>:</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-1.6">
-            <p id="section-5.1-1.6.1"><span class="bcp14">REQUIRED</span>. Value <span class="bcp14">MUST</span> be <code>urn:ietf:params:oauth:token-type:access_token</code>.<a href="#section-5.1-1.6.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-1.7">
-<code>audience</code>:</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-1.8">
-            <p id="section-5.1-1.8.1"><span class="bcp14">REQUIRED</span>. The issuer identifier of the upstream Resource Authorization Server.<a href="#section-5.1-1.8.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-1.9">
-<code>resource</code>:</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-1.10">
-            <p id="section-5.1-1.10.1"><span class="bcp14">OPTIONAL</span>. The resource indicator of the upstream Resource Server <span>[<a href="#RFC8707" class="cite xref">RFC8707</a>]</span>.<a href="#section-5.1-1.10.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-1.11">
-<code>scope</code>:</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-1.12">
-            <p id="section-5.1-1.12.1"><span class="bcp14">OPTIONAL</span>. The scopes requested at the upstream Resource Server.<a href="#section-5.1-1.12.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.1-1">
+          <dt id="section-4.1-1.1">
+<code>aud_cnf</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-1.2">
+            <p id="section-4.1-1.2.1"><span class="bcp14">OPTIONAL</span>. A confirmation object using the syntax of the <code>cnf</code> claim defined in <span>[<a href="#RFC7800" class="cite xref">RFC7800</a>]</span>, or an
+array of such objects. It identifies the key or keys that the party identified by the <code>aud</code> claim
+<span class="bcp14">MAY</span> use when presenting this assertion as the <code>subject_token</code> of a Chained Identity Assertion
+Request (<a href="#chained-request" class="auto internal xref">Section 3</a>). Where an array is used, possession of the key confirmed by any one
+member is sufficient.<a href="#section-4.1-1.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-5.1-2">The Gateway Resource Server <span class="bcp14">MUST</span> authenticate to the Gateway Authorization Server's token
-endpoint.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">The name follows the convention of the <code>aud_tenant</code> and <code>aud_sub</code> claims of
+<span>[<a href="#I-D.ietf-oauth-identity-assertion-authz-grant" class="cite xref">I-D.ietf-oauth-identity-assertion-authz-grant</a>]</span>, in which the <code>aud_</code> prefix denotes a value
+pertaining to the party identified by <code>aud</code>.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-3"><code>cnf</code> and <code>aud_cnf</code> authorize different uses of the same assertion and are not interchangeable:<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.1-4.1">
+            <p id="section-4.1-4.1.1"><code>cnf</code> names the key that may be used to redeem the assertion as an authorization grant, at the
+token endpoint identified by <code>aud</code>. This is the Client's key.<a href="#section-4.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.1-4.2">
+            <p id="section-4.1-4.2.1"><code>aud_cnf</code> names the key that may be used to present the assertion as a <code>subject_token</code> in a
+Chained Identity Assertion Request. This is the Gateway's key.<a href="#section-4.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.1-5">An assertion carrying both is bound to two keys, each for one purpose, rather than being unbound
+for either.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.1-6">The following is a non-normative example of the claims of such an assertion.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.1-7">
+<pre>
+{
+  "iss": "https://idp.example",
+  "sub": "user@example.com",
+  "aud": "https://gateway.example",
+  "client_id": "client-at-gateway",
+  "jti": "5c6d2f8a1b",
+  "iat": 1789000000,
+  "exp": 1789000300,
+  "cnf":     { "jkt": "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I" },
+  "aud_cnf": { "jkt": "Rk1YbFRLQVBUbGhBTGtNbnJmZ3JIUHFEV3ZDR2NpUW8" }
+}
+</pre><a href="#section-4.1-7" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="populating">
+<section id="section-4.2">
+        <h3 id="name-populating-aud_cnf">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-populating-aud_cnf" class="section-name selfRef">Populating <code>aud_cnf</code></a>
+        </h3>
+<p id="section-4.2-1">When an Identity Provider issues an ID-JAG that includes a <code>cnf</code> claim, and the <code>aud</code> of that
+assertion identifies an authorization server operated by a party that its policy permits to make
+Chained Identity Assertion Requests, the Identity Provider <span class="bcp14">MUST</span> include an <code>aud_cnf</code> claim
+identifying the key or keys registered by that party for that purpose.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">An Identity Provider <span class="bcp14">MUST NOT</span> include <code>aud_cnf</code> in an assertion that does not include <code>cnf</code>, as it
+would authorize nothing.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">The value of <code>aud_cnf</code> is determined entirely by the Identity Provider from the Gateway's
+registration. A Client does not supply it, is not required to know the Gateway's key, and does not
+inspect the assertion it forwards. The Client's request for the assertion is unchanged from
+<span>[<a href="#I-D.ietf-oauth-identity-assertion-authz-grant" class="cite xref">I-D.ietf-oauth-identity-assertion-authz-grant</a>]</span>.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2-4">If an assertion contains <code>cnf</code> but not <code>aud_cnf</code>, it is bound solely to the Client and cannot be
+chained. An Identity Provider <span class="bcp14">MUST</span> reject a Chained Identity Assertion Request presenting such an
+assertion, with the error described in <a href="#errors" class="auto internal xref">Section 3.4</a>.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="presenting">
+<section id="section-4.3">
+        <h3 id="name-presenting-a-sender-constra">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-presenting-a-sender-constra" class="section-name selfRef">Presenting a Sender-Constrained Assertion</a>
+        </h3>
+<p id="section-4.3-1">When the <code>subject_token</code> of a Chained Identity Assertion Request contains a <code>cnf</code> claim, the
+Gateway Authorization Server <span class="bcp14">MUST</span> include a DPoP proof JWT in the <code>DPoP</code> header of the request, as
+described in <span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>, with <code>htm</code> set to <code>POST</code> and <code>htu</code> set to the Identity Provider's token
+endpoint. The <code>ath</code> claim is not used, because the <code>subject_token</code> is an assertion rather than an
+access token.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">The key used for the DPoP proof need not be the key used for client authentication; <span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>
+treats these as independent.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">The Identity Provider <span class="bcp14">MUST</span>:<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.3-4">
+<li id="section-4.3-4.1">
+            <p id="section-4.3-4.1.1">Validate the DPoP proof according to Section 4.3 of <span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>.<a href="#section-4.3-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.3-4.2">
+            <p id="section-4.3-4.2.1">Verify that the JWK SHA-256 Thumbprint of the key confirmed by the proof matches a confirmation
+method in the <code>aud_cnf</code> claim of the <code>subject_token</code>.<a href="#section-4.3-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.3-4.3">
+            <p id="section-4.3-4.3.1">NOT compare the proof against the <code>cnf</code> claim of the <code>subject_token</code>. That claim confirms the
+Client's key, which the Gateway does not hold and is not expected to prove.<a href="#section-4.3-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-4.3-5">If the <code>subject_token</code> contains <code>cnf</code> and the proof is absent, invalid, or confirms a key not named
+by <code>aud_cnf</code>, the Identity Provider <span class="bcp14">MUST</span> refuse the request with <code>invalid_grant</code>.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="binding-issued">
+<section id="section-4.4">
+        <h3 id="name-binding-of-the-issued-asser">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-binding-of-the-issued-asser" class="section-name selfRef">Binding of the Issued Assertion</a>
+        </h3>
+<p id="section-4.4-1">The assertion issued in response to a Chained Identity Assertion Request is presented upstream by
+the Gateway, so it <span class="bcp14">MUST</span> be bound to the Gateway's key rather than the Client's. An Identity
+Provider that receives a DPoP proof or a <code>dpop_jkt</code> parameter on the request <span class="bcp14">MUST</span> include a <code>cnf</code>
+claim in the issued assertion, determined as follows:<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.4-2.1">
+            <p id="section-4.4-2.1.1">If <code>dpop_jkt</code> is absent, the <code>cnf</code> claim <span class="bcp14">MUST</span> confirm the key confirmed by the DPoP proof on the
+request.<a href="#section-4.4-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-2.2">
+            <p id="section-4.4-2.2.1">If <code>dpop_jkt</code> is present, the <code>cnf</code> claim <span class="bcp14">MUST</span> confirm the key it names, and the Identity
+Provider <span class="bcp14">MUST</span> verify that this key is registered by the authenticated client. This allows a
+Gateway whose components hold distinct keys to obtain an assertion bound to the component that
+will redeem it, without that component making the request. See <a href="#upstream-dpop" class="auto internal xref">Section 6.4</a>.<a href="#section-4.4-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.4-3">The Gateway then redeems the issued assertion at the upstream Resource Authorization Server,
+presenting a DPoP proof of the confirmed key. The Resource Authorization Server verifies that proof
+against the assertion's <code>cnf</code> claim exactly as
+<span>[<a href="#I-D.ietf-oauth-identity-assertion-authz-grant" class="cite xref">I-D.ietf-oauth-identity-assertion-authz-grant</a>]</span> already requires, and <span class="bcp14">MUST NOT</span> be required to
+recognize <code>aud_cnf</code> or to behave differently in any way. The access token it issues is bound to the
+same key, and the Gateway presents it to the Resource Server as any client would.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="retention">
+<section id="section-5">
+      <h2 id="name-retaining-the-identity-asse">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-retaining-the-identity-asse" class="section-name selfRef">Retaining the Identity Assertion</a>
+      </h2>
+<p id="section-5-1">In order to make a Chained Identity Assertion Request at the time a resource request arrives, a
+Gateway Authorization Server needs the assertion it was given. Therefore:<a href="#section-5-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5-2.1">
+          <p id="section-5-2.1.1">A Gateway Authorization Server <span class="bcp14">MUST</span> associate the ID-JAG it received from the Client with the
+access token it issues in exchange, so that the assertion can be used to satisfy later
+requests made with that access token.<a href="#section-5-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-2.2">
+          <p id="section-5-2.2.1">A Gateway Authorization Server <span class="bcp14">MUST NOT</span> issue an access token whose expiration is later than
+the expiration of the ID-JAG it was presented, unless it has already obtained the upstream
+access tokens that the access token will be used to reach. An access token that outlives the
+assertion behind it cannot be honored.<a href="#section-5-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-2.3">
+          <p id="section-5-2.3.1">A Gateway Authorization Server <span class="bcp14">SHOULD</span> reject an ID-JAG that it has already redeemed, so that
+the Client presents a freshly issued assertion. <span>[<a href="#I-D.ietf-oauth-identity-assertion-authz-grant" class="cite xref">I-D.ietf-oauth-identity-assertion-authz-grant</a>]</span>
+permits a Client to replay an ID-JAG to obtain a new access token, and an assertion that has
+expired in the interim cannot be used as a subject token.<a href="#section-5-2.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-5-3">A Gateway Authorization Server <span class="bcp14">MUST NOT</span> retain the ID-JAG beyond the lifetime of the access
+tokens issued in exchange for it.<a href="#section-5-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="upstream-request">
+<section id="section-6">
+      <h2 id="name-upstream-token-request">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-upstream-token-request" class="section-name selfRef">Upstream Token Request</a>
+      </h2>
+<p id="section-6-1">This section is <span class="bcp14">OPTIONAL</span> to implement. It is required only when the Gateway Authorization Server
+and the Gateway Resource Server are separate deployments.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">Whether an authorization server is operated separately from its resource server is a private
+matter between those two components, and <span class="bcp14">MUST NOT</span> change the behavior of any other party. A
+Gateway Resource Server therefore obtains an upstream access token from its own authorization
+server using a token exchange request <span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span>, which collapses to an internal operation when
+the two components are a single deployment.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<div id="request-1">
+<section id="section-6.1">
+        <h3 id="name-request-2">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-request-2" class="section-name selfRef">Request</a>
+        </h3>
+<span class="break"></span><dl class="dlParallel" id="section-6.1-1">
+          <dt id="section-6.1-1.1">
+<code>grant_type</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-6.1-1.2">
+            <p id="section-6.1-1.2.1"><span class="bcp14">REQUIRED</span>. Value <span class="bcp14">MUST</span> be <code>urn:ietf:params:oauth:grant-type:token-exchange</code>.<a href="#section-6.1-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-6.1-1.3">
+<code>subject_token</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-6.1-1.4">
+            <p id="section-6.1-1.4.1"><span class="bcp14">REQUIRED</span>. The access token that the Client presented to the Gateway Resource Server.<a href="#section-6.1-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-6.1-1.5">
+<code>subject_token_type</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-6.1-1.6">
+            <p id="section-6.1-1.6.1"><span class="bcp14">REQUIRED</span>. Value <span class="bcp14">MUST</span> be <code>urn:ietf:params:oauth:token-type:access_token</code>.<a href="#section-6.1-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-6.1-1.7">
+<code>audience</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-6.1-1.8">
+            <p id="section-6.1-1.8.1"><span class="bcp14">REQUIRED</span>. The issuer identifier of the upstream Resource Authorization Server.<a href="#section-6.1-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-6.1-1.9">
+<code>resource</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-6.1-1.10">
+            <p id="section-6.1-1.10.1"><span class="bcp14">OPTIONAL</span>. The resource indicator of the upstream Resource Server <span>[<a href="#RFC8707" class="cite xref">RFC8707</a>]</span>.<a href="#section-6.1-1.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-6.1-1.11">
+<code>scope</code>:</dt>
+          <dd style="margin-left: 1.5em" id="section-6.1-1.12">
+            <p id="section-6.1-1.12.1"><span class="bcp14">OPTIONAL</span>. The scopes requested at the upstream Resource Server.<a href="#section-6.1-1.12.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-6.1-2">The Gateway Resource Server <span class="bcp14">MUST</span> authenticate to the Gateway Authorization Server's token
+endpoint.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="processing">
-<section id="section-5.2">
+<section id="section-6.2">
         <h3 id="name-processing">
-<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-processing" class="section-name selfRef">Processing</a>
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-processing" class="section-name selfRef">Processing</a>
         </h3>
-<p id="section-5.2-1">The Gateway Authorization Server <span class="bcp14">MUST</span>:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-5.2-2">
-<li id="section-5.2-2.1">
-            <p id="section-5.2-2.1.1">Authenticate the Gateway Resource Server, and verify it is permitted to request upstream
-tokens.<a href="#section-5.2-2.1.1" class="pilcrow">¶</a></p>
+<p id="section-6.2-1">The Gateway Authorization Server <span class="bcp14">MUST</span>:<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.2-2">
+<li id="section-6.2-2.1">
+            <p id="section-6.2-2.1.1">Authenticate the Gateway Resource Server, and verify it is permitted to request upstream
+tokens.<a href="#section-6.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.2-2.2">
-            <p id="section-5.2-2.2.1">Verify that the <code>subject_token</code> is an access token it issued and that has not expired or been
-revoked.<a href="#section-5.2-2.2.1" class="pilcrow">¶</a></p>
+          <li id="section-6.2-2.2">
+            <p id="section-6.2-2.2.1">Verify that the <code>subject_token</code> is an access token it issued and that has not expired or been
+revoked.<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.2-2.3">
-            <p id="section-5.2-2.3.1">Locate the ID-JAG associated with that access token, as described in <a href="#retention" class="auto internal xref">Section 4</a>.<a href="#section-5.2-2.3.1" class="pilcrow">¶</a></p>
+          <li id="section-6.2-2.3">
+            <p id="section-6.2-2.3.1">Locate the ID-JAG associated with that access token, as described in <a href="#retention" class="auto internal xref">Section 5</a>.<a href="#section-6.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.2-2.4">
-            <p id="section-5.2-2.4.1">Perform the Chained Identity Assertion Request of <a href="#chained-request" class="auto internal xref">Section 3</a> for the requested
-<code>audience</code>, and redeem the resulting ID-JAG at the upstream Resource Authorization Server.<a href="#section-5.2-2.4.1" class="pilcrow">¶</a></p>
+          <li id="section-6.2-2.4">
+            <p id="section-6.2-2.4.1">Perform the Chained Identity Assertion Request of <a href="#chained-request" class="auto internal xref">Section 3</a> for the requested
+<code>audience</code>, and redeem the resulting ID-JAG at the upstream Resource Authorization Server.<a href="#section-6.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 </section>
 </div>
 <div id="response-1">
-<section id="section-5.3">
+<section id="section-6.3">
         <h3 id="name-response-2">
-<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-response-2" class="section-name selfRef">Response</a>
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-response-2" class="section-name selfRef">Response</a>
         </h3>
-<p id="section-5.3-1">The response is an OAuth 2.0 token response containing the upstream access token, with
+<p id="section-6.3-1">The response is an OAuth 2.0 token response containing the upstream access token, with
 <code>issued_token_type</code> set to <code>urn:ietf:params:oauth:token-type:access_token</code>. The
 <code>expires_in</code> value <span class="bcp14">SHOULD</span> be included so that the Gateway Resource Server can cache the token
-for its remaining lifetime.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
-<p id="section-5.3-2">The Gateway Authorization Server <span class="bcp14">MUST NOT</span> return a refresh token, and <span class="bcp14">MUST NOT</span> return an access
-token for an <code>audience</code> other than the one requested.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+for its remaining lifetime.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.3-2">The Gateway Authorization Server <span class="bcp14">MUST NOT</span> return a refresh token, and <span class="bcp14">MUST NOT</span> return an access
+token for an <code>audience</code> other than the one requested.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="upstream-dpop">
+<section id="section-6.4">
+        <h3 id="name-sender-constrained-upstream">
+<a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-sender-constrained-upstream" class="section-name selfRef">Sender-Constrained Upstream Tokens</a>
+        </h3>
+<p id="section-6.4-1">An upstream access token is bound to the key proven at the upstream Resource Authorization Server's
+token endpoint, but it is the Gateway Resource Server that presents it to the Resource Server. When
+the two components of a Gateway hold distinct keys, an access token obtained by the Gateway
+Authorization Server cannot be used by the Gateway Resource Server, which does not hold the key it
+is bound to.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
+<p id="section-6.4-2">Either of the following resolves this. A Gateway whose components are a single deployment has a
+single key and needs neither.<a href="#section-6.4-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.4-3.1">
+            <p id="section-6.4-3.1.1">The two components share the key. The Gateway Authorization Server obtains the upstream access
+token as described above and returns it. This requires a private key to be usable by both
+components, across the same deployment boundary this section exists to accommodate.<a href="#section-6.4-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.4-3.2">
+            <p id="section-6.4-3.2.1">The Gateway Resource Server redeems the assertion itself. It includes
+<code>requested_token_type=urn:ietf:params:oauth:token-type:id-jag</code> in its request and a <code>dpop_jkt</code>
+parameter naming its own key. The Gateway Authorization Server performs the Chained Identity
+Assertion Request with that <code>dpop_jkt</code> (<a href="#binding-issued" class="auto internal xref">Section 4.4</a>), and returns the resulting assertion
+rather than an access token, with <code>issued_token_type</code> set to
+<code>urn:ietf:params:oauth:token-type:id-jag</code>. The Gateway Resource Server then redeems it at the
+upstream Resource Authorization Server, proving its own key, and receives an access token bound
+to that key.<a href="#section-6.4-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-6.4-4">Implementations <span class="bcp14">SHOULD</span> prefer the second, so that each key remains held by one component only.
+Nothing outside the Gateway is affected by the choice: in both cases the upstream Resource
+Authorization Server receives an assertion whose <code>cnf</code> claim confirms the key of the party
+presenting it.<a href="#section-6.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="security-considerations">
-<section id="section-6">
+<section id="section-7">
       <h2 id="name-security-considerations">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <div id="restriction-to-assertions-issued-to-the-gateway">
-<section id="section-6.1">
+<section id="section-7.1">
         <h3 id="name-restriction-to-assertions-i">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-restriction-to-assertions-i" class="section-name selfRef">Restriction to assertions issued to the Gateway</a>
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-restriction-to-assertions-i" class="section-name selfRef">Restriction to assertions issued to the Gateway</a>
         </h3>
-<p id="section-6.1-1">The check in <a href="#chained-request" class="auto internal xref">Section 3</a> that the <code>subject_token</code>'s <code>aud</code> identifies an authorization
+<p id="section-7.1-1">The check in <a href="#chained-request" class="auto internal xref">Section 3</a> that the <code>subject_token</code>'s <code>aud</code> identifies an authorization
 server operated by the authenticated client is essential. Without it, any party that obtained an
 ID-JAG — including a Resource Authorization Server that legitimately received one — could present
 it to obtain grants for unrelated audiences. Combined with the policy check, the Identity
-Provider remains the only party that decides which resources a Gateway may reach.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+Provider remains the only party that decides which resources a Gateway may reach.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="chain-depth">
-<section id="section-6.2">
+<section id="section-7.2">
         <h3 id="name-chain-depth">
-<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-chain-depth" class="section-name selfRef">Chain depth</a>
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-chain-depth" class="section-name selfRef">Chain depth</a>
         </h3>
-<p id="section-6.2-1">An Identity Provider that accepts an assertion already containing an <code>act</code> claim permits a
+<p id="section-7.2-1">An Identity Provider that accepts an assertion already containing an <code>act</code> claim permits a
 Gateway behind a Gateway. Each additional hop adds a party that must be trusted with the
 subject's authority, and the accumulated <code>act</code> chain is the only record of it. Identity Providers
 <span class="bcp14">SHOULD</span> therefore permit a single hop by default, as required in <a href="#chained-request" class="auto internal xref">Section 3</a>, and treat
-longer chains as explicit configuration.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+longer chains as explicit configuration.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">The <code>aud_cnf</code> claim of <a href="#sender-constrained" class="auto internal xref">Section 4</a> is subject to the same limit. Including it in an
+issued assertion authorizes the next audience to chain that assertion onward, so an Identity
+Provider <span class="bcp14">MUST NOT</span> include it in an assertion it issues in response to a Chained Identity Assertion
+Request unless its policy permits that further hop. An implementation that emits <code>aud_cnf</code>
+unconditionally would permit chains of unbounded length.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="aggregation-of-authority-at-the-gateway">
-<section id="section-6.3">
+<section id="section-7.3">
         <h3 id="name-aggregation-of-authority-at">
-<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-aggregation-of-authority-at" class="section-name selfRef">Aggregation of authority at the Gateway</a>
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-aggregation-of-authority-at" class="section-name selfRef">Aggregation of authority at the Gateway</a>
         </h3>
-<p id="section-6.3-1">A Gateway obtains access tokens for every upstream it fronts, for every subject currently using
+<p id="section-7.3-1">A Gateway obtains access tokens for every upstream it fronts, for every subject currently using
 it. Compromise of a Gateway therefore exposes those tokens. This is inherent to interposing a
 gateway and is not introduced by this specification, but two properties limit it: the Gateway
 holds no credential from which further authority can be derived once its retained assertions
-expire, and the Identity Provider's policy bounds the set of upstreams reachable at all.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
-<p id="section-6.3-2">Deployments <span class="bcp14">SHOULD</span> prefer assertions and access tokens with short lifetimes over long-lived ones,
-since the Client can obtain a fresh assertion without user interaction.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+expire, and the Identity Provider's policy bounds the set of upstreams reachable at all.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-2">Deployments <span class="bcp14">SHOULD</span> prefer assertions and access tokens with short lifetimes over long-lived ones,
+since the Client can obtain a fresh assertion without user interaction.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="no-refresh-tokens">
-<section id="section-6.4">
+<section id="section-7.4">
         <h3 id="name-no-refresh-tokens">
-<a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-no-refresh-tokens" class="section-name selfRef">No refresh tokens</a>
+<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-no-refresh-tokens" class="section-name selfRef">No refresh tokens</a>
         </h3>
-<p id="section-6.4-1">Neither the Identity Provider (<a href="#chained-request" class="auto internal xref">Section 3</a>) nor the Gateway Authorization Server
-(<a href="#upstream-request" class="auto internal xref">Section 5</a>) issues a refresh token. A Gateway holding a refresh token could act for a
+<p id="section-7.4-1">Neither the Identity Provider (<a href="#chained-request" class="auto internal xref">Section 3</a>) nor the Gateway Authorization Server
+(<a href="#upstream-request" class="auto internal xref">Section 6</a>) issues a refresh token. A Gateway holding a refresh token could act for a
 subject with no Client driving it. That is a different delegation from the one this grant
-expresses, and it would place a long-lived credential for every subject at the Gateway.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
+expresses, and it would place a long-lived credential for every subject at the Gateway.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subject-binding-of-cached-tokens">
-<section id="section-6.5">
+<section id="section-7.5">
         <h3 id="name-subject-binding-of-cached-t">
-<a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-subject-binding-of-cached-t" class="section-name selfRef">Subject binding of cached tokens</a>
+<a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-subject-binding-of-cached-t" class="section-name selfRef">Subject binding of cached tokens</a>
         </h3>
-<p id="section-6.5-1">A Gateway Resource Server that caches upstream access tokens, or that maintains protocol state
+<p id="section-7.5-1">A Gateway Resource Server that caches upstream access tokens, or that maintains protocol state
 such as session identifiers on behalf of a Client, <span class="bcp14">MUST</span> bind each cache entry to the subject and
 issuer of the access token that produced it, and <span class="bcp14">MUST</span> verify that binding on every request. A
 cache keyed only by an identifier supplied by the Client would allow one subject to reach
-another's upstream tokens or session state.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
+another's upstream tokens or session state.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="audience-of-tokens-issued-by-the-gateway">
-<section id="section-6.6">
+<section id="section-7.6">
         <h3 id="name-audience-of-tokens-issued-b">
-<a href="#section-6.6" class="section-number selfRef">6.6. </a><a href="#name-audience-of-tokens-issued-b" class="section-name selfRef">Audience of tokens issued by the Gateway</a>
+<a href="#section-7.6" class="section-number selfRef">7.6. </a><a href="#name-audience-of-tokens-issued-b" class="section-name selfRef">Audience of tokens issued by the Gateway</a>
         </h3>
-<p id="section-6.6-1">A Gateway Authorization Server <span class="bcp14">SHOULD</span> issue an access token whose audience identifies the
+<p id="section-7.6-1">A Gateway Authorization Server <span class="bcp14">SHOULD</span> issue an access token whose audience identifies the
 specific protected resource the Client requested, rather than the Gateway as a whole, so that a
-token obtained for one upstream cannot be presented to reach another.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
+token obtained for one upstream cannot be presented to reach another.<a href="#section-7.6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dual-binding-of-the-clients-assertion">
+<section id="section-7.7">
+        <h3 id="name-dual-binding-of-the-clients">
+<a href="#section-7.7" class="section-number selfRef">7.7. </a><a href="#name-dual-binding-of-the-clients" class="section-name selfRef">Dual binding of the Client's assertion</a>
+        </h3>
+<p id="section-7.7-1">The <code>aud_cnf</code> claim means that two distinct keys can make use of one assertion, so a disclosed
+assertion is usable by the holder of either. This is a smaller concession than it appears, and it is
+materially different from waiving proof of possession:<a href="#section-7.7-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7.7-2.1">
+            <p id="section-7.7-2.1.1">Both keys are named in the assertion, by the Identity Provider, at issuance. Neither is inferred
+at the time of use, and an assertion that names no second key cannot be chained at all.<a href="#section-7.7-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.7-2.2">
+            <p id="section-7.7-2.2.1">The second key belongs to the Gateway, which the Identity Provider's policy already permits to
+obtain assertions for that subject and audience. An attacker able to prove that key can obtain
+such assertions directly and gains nothing further from the disclosed assertion.<a href="#section-7.7-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.7-2.3">
+            <p id="section-7.7-2.3.1">The two keys authorize different operations. Possession of the <code>aud_cnf</code> key permits only
+presenting the assertion as a <code>subject_token</code>; it does not permit redeeming it as a grant at the
+audience's token endpoint, which still requires the <code>cnf</code> key.<a href="#section-7.7-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-7.7-3">The binding that is genuinely relinquished is end-to-end binding to the Client, and it is
+relinquished because the Gateway is a different sender. Tokens on the upstream side of a Gateway are
+bound to the Gateway, and an upstream Resource Server that verifies proof of possession learns that
+the presenter is the Gateway. It does not learn, and cannot be given by this mechanism, evidence
+that the Client itself presented anything. Where an upstream needs to distinguish those cases, the
+<code>act</code> claim is what carries that information, not the confirmation claims.<a href="#section-7.7-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="key-ownership-within-a-gateway">
+<section id="section-7.8">
+        <h3 id="name-key-ownership-within-a-gate">
+<a href="#section-7.8" class="section-number selfRef">7.8. </a><a href="#name-key-ownership-within-a-gate" class="section-name selfRef">Key ownership within a Gateway</a>
+        </h3>
+<p id="section-7.8-1">The two resolutions in <a href="#upstream-dpop" class="auto internal xref">Section 6.4</a> differ in their consequences. Sharing one key between a
+Gateway's authorization server and resource server means a compromise of either component yields a
+key that can also act as the other. Giving each component its own key and using <code>dpop_jkt</code> confines
+a compromise to the affected component, at the cost of one additional registered key. Deployments
+<span class="bcp14">SHOULD</span> register distinct keys.<a href="#section-7.8-1" class="pilcrow">¶</a></p>
+<p id="section-7.8-2">An Identity Provider <span class="bcp14">MUST</span> verify that a key named by <code>dpop_jkt</code> is registered by the authenticated
+client. Without that check, a Gateway could cause an assertion to be bound to a key held by an
+unrelated party.<a href="#section-7.8-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="client-authentication-at-the-identity-provider">
-<section id="section-6.7">
+<section id="section-7.9">
         <h3 id="name-client-authentication-at-th">
-<a href="#section-6.7" class="section-number selfRef">6.7. </a><a href="#name-client-authentication-at-th" class="section-name selfRef">Client authentication at the Identity Provider</a>
+<a href="#section-7.9" class="section-number selfRef">7.9. </a><a href="#name-client-authentication-at-th" class="section-name selfRef">Client authentication at the Identity Provider</a>
         </h3>
-<p id="section-6.7-1">The <code>actor_token</code> parameter of <span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span> is not used by this specification; the acting party is
+<p id="section-7.9-1">The <code>actor_token</code> parameter of <span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span> is not used by this specification; the acting party is
 established by client authentication. Identity Providers <span class="bcp14">SHOULD</span> require an authentication method
 that does not rely on a shared secret, so that the acting party cannot be impersonated by a party
-that has observed a credential in transit.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
+that has observed a credential in transit.<a href="#section-7.9-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-7">
+<section id="section-8">
       <h2 id="name-iana-considerations">
-<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-7-1">This document requires no new registrations.<a href="#section-7-1" class="pilcrow">¶</a></p>
-<p id="section-7-2">The value <code>urn:ietf:params:oauth:token-type:id-jag</code>, registered by
+<div id="json-web-token-claims-registration">
+<section id="section-8.1">
+        <h3 id="name-json-web-token-claims-regis">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-json-web-token-claims-regis" class="section-name selfRef">JSON Web Token Claims Registration</a>
+        </h3>
+<p id="section-8.1-1">This specification requests registration of the following claim in the "JSON Web Token Claims"
+registry established by <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-8.1-2">
+          <dt id="section-8.1-2.1">Claim Name:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.1-2.2">
+            <p id="section-8.1-2.2.1"><code>aud_cnf</code><a href="#section-8.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-8.1-2.3">Claim Description:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.1-2.4">
+            <p id="section-8.1-2.4.1">Confirmation key of the party identified by the audience<a href="#section-8.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-8.1-2.5">Change Controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.1-2.6">
+            <p id="section-8.1-2.6.1">IETF<a href="#section-8.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-8.1-2.7">Specification Document(s):</dt>
+          <dd style="margin-left: 1.5em" id="section-8.1-2.8">
+            <p id="section-8.1-2.8.1"><a href="#aud-cnf" class="auto internal xref">Section 4.1</a> of this document<a href="#section-8.1-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="oauth-parameters-registration">
+<section id="section-8.2">
+        <h3 id="name-oauth-parameters-registrati">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-oauth-parameters-registrati" class="section-name selfRef">OAuth Parameters Registration</a>
+        </h3>
+<p id="section-8.2-1">The <code>dpop_jkt</code> parameter is registered in the "OAuth Parameters" registry by <span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span> with a
+parameter usage location of "authorization request". This specification uses it in a token request,
+and therefore requests that the following usage location be added to the existing registration.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-8.2-2">
+          <dt id="section-8.2-2.1">Parameter name:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-2.2">
+            <p id="section-8.2-2.2.1"><code>dpop_jkt</code><a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-8.2-2.3">Parameter usage location:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-2.4">
+            <p id="section-8.2-2.4.1">token request<a href="#section-8.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-8.2-2.5">Change Controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-2.6">
+            <p id="section-8.2-2.6.1">IETF<a href="#section-8.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-8.2-2.7">Specification Document(s):</dt>
+          <dd style="margin-left: 1.5em" id="section-8.2-2.8">
+            <p id="section-8.2-2.8.1">Section 10 of <span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span> and <a href="#binding-issued" class="auto internal xref">Section 4.4</a> of this document<a href="#section-8.2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="no-new-token-type-identifiers">
+<section id="section-8.3">
+        <h3 id="name-no-new-token-type-identifie">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-no-new-token-type-identifie" class="section-name selfRef">No new token type identifiers</a>
+        </h3>
+<p id="section-8.3-1">The value <code>urn:ietf:params:oauth:token-type:id-jag</code>, registered by
 <span>[<a href="#I-D.ietf-oauth-identity-assertion-authz-grant" class="cite xref">I-D.ietf-oauth-identity-assertion-authz-grant</a>]</span> in the "OAuth URI" registry, is used by this
 specification as a <code>subject_token_type</code> in addition to its existing use as a
-<code>requested_token_type</code> and <code>issued_token_type</code>. That use requires no additional registration.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<code>requested_token_type</code> and <code>issued_token_type</code>. That use requires no additional registration.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="sec-combined-references">
-<section id="section-8">
+<section id="section-9">
       <h2 id="name-references">
-<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-references" class="section-name selfRef">References</a>
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
 <div id="sec-normative-references">
-<section id="section-8.1">
+<section id="section-9.1">
         <h3 id="name-normative-references">
-<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
 <dt id="I-D.ietf-oauth-identity-assertion-authz-grant">[I-D.ietf-oauth-identity-assertion-authz-grant]</dt>
@@ -1922,9 +2313,17 @@ specification as a <code>subject_token_type</code> in addition to its existing u
         <dd>
 <span class="refAuthor">Hardt, D., Ed.</span>, <span class="refTitle">"The OAuth 2.0 Authorization Framework"</span>, <span class="seriesInfo">RFC 6749</span>, <span class="seriesInfo">DOI 10.17487/RFC6749</span>, <time datetime="2012-10" class="refDate">October 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6749">https://www.rfc-editor.org/rfc/rfc6749</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC7519">[RFC7519]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Token (JWT)"</span>, <span class="seriesInfo">RFC 7519</span>, <span class="seriesInfo">DOI 10.17487/RFC7519</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7519">https://www.rfc-editor.org/rfc/rfc7519</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC7523">[RFC7523]</dt>
         <dd>
 <span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Campbell, B.</span>, and <span class="refAuthor">C. Mortimore</span>, <span class="refTitle">"JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants"</span>, <span class="seriesInfo">RFC 7523</span>, <span class="seriesInfo">DOI 10.17487/RFC7523</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7523">https://www.rfc-editor.org/rfc/rfc7523</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7800">[RFC7800]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">H. Tschofenig</span>, <span class="refTitle">"Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)"</span>, <span class="seriesInfo">RFC 7800</span>, <span class="seriesInfo">DOI 10.17487/RFC7800</span>, <time datetime="2016-04" class="refDate">April 2016</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7800">https://www.rfc-editor.org/rfc/rfc7800</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>
@@ -1935,16 +2334,20 @@ specification as a <code>subject_token_type</code> in addition to its existing u
 <span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Nadalin, A.</span>, <span class="refAuthor">Campbell, B., Ed.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">C. Mortimore</span>, <span class="refTitle">"OAuth 2.0 Token Exchange"</span>, <span class="seriesInfo">RFC 8693</span>, <span class="seriesInfo">DOI 10.17487/RFC8693</span>, <time datetime="2020-01" class="refDate">January 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8693">https://www.rfc-editor.org/rfc/rfc8693</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8707">[RFC8707]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">H. Tschofenig</span>, <span class="refTitle">"Resource Indicators for OAuth 2.0"</span>, <span class="seriesInfo">RFC 8707</span>, <span class="seriesInfo">DOI 10.17487/RFC8707</span>, <time datetime="2020-02" class="refDate">February 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8707">https://www.rfc-editor.org/rfc/rfc8707</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9449">[RFC9449]</dt>
+      <dd>
+<span class="refAuthor">Fett, D.</span>, <span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Jones, M.</span>, and <span class="refAuthor">D. Waite</span>, <span class="refTitle">"OAuth 2.0 Demonstrating Proof of Possession (DPoP)"</span>, <span class="seriesInfo">RFC 9449</span>, <span class="seriesInfo">DOI 10.17487/RFC9449</span>, <time datetime="2023-09" class="refDate">September 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9449">https://www.rfc-editor.org/rfc/rfc9449</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="sec-informative-references">
-<section id="section-8.2">
+<section id="section-9.2">
         <h3 id="name-informative-references">
-<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
 <dt id="RFC9728">[RFC9728]</dt>
@@ -1994,7 +2397,13 @@ an implementation that does not look for it.<a href="#appendix-A.1-3.2.1" class=
 </li>
         </ul>
 <p id="appendix-A.1-4">Everything new is therefore confined to the Identity Provider and the Gateway: one new subject
-token type at the Identity Provider, and one internal exchange within the Gateway.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+token type at the Identity Provider, one claim the Identity Provider adds to an assertion it
+already issues, and one internal exchange within the Gateway.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-5">The <code>aud_cnf</code> claim of <a href="#sender-constrained" class="auto internal xref">Section 4</a> is held to the same standard. A Client neither
+populates nor reads it, so it changes nothing about the request a Client makes or what it does with
+the result. It appears only in an assertion whose audience is a Gateway, so a Resource
+Authorization Server never receives an assertion containing it, and the assertion it does receive
+is bound to the key of the party presenting it, which is what the base grant already requires.<a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="why-the-assertion-and-not-an-access-token">
@@ -2039,7 +2448,7 @@ assertion does not require the user either: <span>[<a href="#I-D.ietf-oauth-iden
 permits an Identity-Provider-issued refresh token as the subject token precisely because an
 assertion is usually requested long after the user's identity token expired.<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
 <p id="appendix-A.4-2">So a Client can obtain a fresh assertion at any time, and a Gateway consequently receives a
-fresh, verifiable assertion at any time. The freshness constraint in <a href="#retention" class="auto internal xref">Section 4</a> is not about
+fresh, verifiable assertion at any time. The freshness constraint in <a href="#retention" class="auto internal xref">Section 5</a> is not about
 whether a user is present; it is only about the interval between one redemption and the next.<a href="#appendix-A.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2060,7 +2469,7 @@ in its own right, and it is why neither exchange defined here returns a refresh 
         </h3>
 <p id="appendix-A.6-1">Whether an authorization server is operated separately from its resource server is conventionally
 private between those two components: it is settled by deployment, and the rest of the protocol
-does not change either way. Preserving that property is what makes <a href="#upstream-request" class="auto internal xref">Section 5</a> a token
+does not change either way. Preserving that property is what makes <a href="#upstream-request" class="auto internal xref">Section 6</a> a token
 exchange rather than a private interface.<a href="#appendix-A.6-1" class="pilcrow">¶</a></p>
 <p id="appendix-A.6-2">It also determines where each responsibility sits. The Gateway Authorization Server is the only
 component that communicates with the Identity Provider, and it holds only the grant it was
@@ -2074,17 +2483,42 @@ place upstream credentials in the component that has no use for them, and would 
 components through token lifetimes and the list of upstreams.<a href="#appendix-A.6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="reuse-of-the-assertion">
+<div id="sender-constraining-across-a-change-of-sender">
 <section id="appendix-A.7">
-        <h3 id="name-reuse-of-the-assertion">
-<a href="#appendix-A.7" class="section-number selfRef">A.7. </a><a href="#name-reuse-of-the-assertion" class="section-name selfRef">Reuse of the assertion</a>
+        <h3 id="name-sender-constraining-across-">
+<a href="#appendix-A.7" class="section-number selfRef">A.7. </a><a href="#name-sender-constraining-across-" class="section-name selfRef">Sender constraining across a change of sender</a>
         </h3>
-<p id="appendix-A.7-1">A Gateway fronting several upstreams does not know, when it issues an access token, which
+<p id="appendix-A.7-1">Proof of possession binds a token to the party that presents it. A Gateway presents the upstream
+grant over its own connection, to its own endpoint, using its own key, and it does not hold the
+Client's key. So the upstream artifacts are bound to the Gateway. That is not a gap in the
+mechanism; it is what the mechanism does when the sender legitimately changes, and it is the same
+thing that happens whenever any client obtains a token to make an onward call.<a href="#appendix-A.7-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.7-2">Once that is accepted, the problem narrows sharply. Every artifact in the flow has exactly one
+party that will present it, and binds to that party's key in the ordinary way, with one exception:
+the assertion the Client redeems at the Gateway is also the assertion the Gateway presents as a
+subject token. Two senders, one artifact.<a href="#appendix-A.7-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.7-3">Three ways to resolve that were considered. Waiving proof of possession for the Gateway leaves the
+assertion unbound in practice, which defeats the purpose of constraining it. Forwarding the Client's
+own DPoP proof does not work, because a proof is bound to an HTTP method and URI and the Identity
+Provider's token endpoint is neither the ones the Client signed for. Having the Client name the
+Gateway's key would require the Client to know it, which violates the constraint that Clients not
+change.<a href="#appendix-A.7-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.7-4">What remains is for the Identity Provider, which already knows both parties and already decides
+whether this Gateway may act for this audience, to name the second key itself. The assertion then
+carries two bindings for two uses, and no party has to accept an unproven one.<a href="#appendix-A.7-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="reuse-of-the-assertion">
+<section id="appendix-A.8">
+        <h3 id="name-reuse-of-the-assertion">
+<a href="#appendix-A.8" class="section-number selfRef">A.8. </a><a href="#name-reuse-of-the-assertion" class="section-name selfRef">Reuse of the assertion</a>
+        </h3>
+<p id="appendix-A.8-1">A Gateway fronting several upstreams does not know, when it issues an access token, which
 upstreams a Client will reach through it. Obtaining grants for all of them at redemption would
 mean requesting authorization that is never exercised, and would make the access token's lifetime
 depend on upstreams the Client never asks for. Permitting the assertion to be presented more than
 once within its validity period is what allows a Gateway to obtain each grant on first use
-instead.<a href="#appendix-A.7-1" class="pilcrow">¶</a></p>
+instead.<a href="#appendix-A.8-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

@@ -9,7 +9,7 @@ Expires: 6 March 2027
 
 
           Identity Assertion Authorization Grant for Gateways
-           draft-parecki-oauth-identity-assertion-gateways-00
+         draft-parecki-oauth-identity-assertion-gateways-latest
 
 Abstract
 
@@ -29,6 +29,10 @@ Abstract
    defines an optional token exchange that allows a gateway's
    authorization server and resource server to be operated as separate
    deployments.
+
+   To allow sender-constrained tokens to be used across a gateway, which
+   is necessarily a different sender from the client, this specification
+   also defines the aud_cnf claim.
 
    Neither the client nor the Resource Authorization Server is affected
    by this extension.
@@ -87,23 +91,34 @@ Table of Contents
      3.2.  Identity Provider Processing
      3.3.  Response
      3.4.  Error Responses
-   4.  Retaining the Identity Assertion
-   5.  Upstream Token Request
-     5.1.  Request
-     5.2.  Processing
-     5.3.  Response
-   6.  Security Considerations
-     6.1.  Restriction to assertions issued to the Gateway
-     6.2.  Chain depth
-     6.3.  Aggregation of authority at the Gateway
-     6.4.  No refresh tokens
-     6.5.  Subject binding of cached tokens
-     6.6.  Audience of tokens issued by the Gateway
-     6.7.  Client authentication at the Identity Provider
-   7.  IANA Considerations
-   8.  References
-     8.1.  Normative References
-     8.2.  Informative References
+   4.  Sender-Constrained Assertions
+     4.1.  The aud_cnf Claim
+     4.2.  Populating aud_cnf
+     4.3.  Presenting a Sender-Constrained Assertion
+     4.4.  Binding of the Issued Assertion
+   5.  Retaining the Identity Assertion
+   6.  Upstream Token Request
+     6.1.  Request
+     6.2.  Processing
+     6.3.  Response
+     6.4.  Sender-Constrained Upstream Tokens
+   7.  Security Considerations
+     7.1.  Restriction to assertions issued to the Gateway
+     7.2.  Chain depth
+     7.3.  Aggregation of authority at the Gateway
+     7.4.  No refresh tokens
+     7.5.  Subject binding of cached tokens
+     7.6.  Audience of tokens issued by the Gateway
+     7.7.  Dual binding of the Client's assertion
+     7.8.  Key ownership within a Gateway
+     7.9.  Client authentication at the Identity Provider
+   8.  IANA Considerations
+     8.1.  JSON Web Token Claims Registration
+     8.2.  OAuth Parameters Registration
+     8.3.  No new token type identifiers
+   9.  References
+     9.1.  Normative References
+     9.2.  Informative References
    Appendix A.  Design Rationale
      A.1.  Burden of implementation
      A.2.  Why the assertion, and not an access token
@@ -111,7 +126,8 @@ Table of Contents
      A.4.  Absence of the user is the Client's problem, already solved
      A.5.  Why the Gateway has no independent authority
      A.6.  Separability of the Gateway's components
-     A.7.  Reuse of the assertion
+     A.7.  Sender constraining across a change of sender
+     A.8.  Reuse of the assertion
    Acknowledgments
    Author's Address
 
@@ -144,6 +160,23 @@ Table of Contents
    the client redeemed at the gateway can, because the Identity Provider
    issued it.  This specification defines how a gateway presents that
    assertion to obtain a further assertion for a resource behind it.
+
+   [I-D.ietf-oauth-identity-assertion-authz-grant] allows an ID-JAG to
+   be sender-constrained, by binding it to a key with the cnf claim of
+   [RFC7800] and requiring proof of possession of that key when the
+   assertion is used.  A gateway is necessarily a different sender from
+   the client: it presents the upstream grant over its own connection,
+   to its own endpoint, and it does not hold the client's key.  Tokens
+   on the upstream side of a gateway are therefore bound to the
+   gateway's key rather than the client's, which is what sender
+   constraining means when the sender legitimately changes.
+
+   That leaves exactly one artifact that two different senders must be
+   able to present: the assertion the client redeems at the gateway,
+   which the gateway then presents as a subject token.  This
+   specification defines the aud_cnf claim (Section 4) so that such an
+   assertion can name both keys, each authorized for a different use,
+   rather than having its binding waived for one of them.
 
 1.1.  Conventions and Terminology
 
@@ -238,10 +271,17 @@ Table of Contents
       in (3) as the subject token, and obtains an ID-JAG whose audience
       is the Resource Authorization Server.  This is REQUIRED.
 
-   (6):  The Upstream Token Request (Section 5), in which the Gateway
-      Resource Server obtains an upstream access token from the Gateway
+   (6):  The Upstream Token Request (Section 6), in which the Gateway
+      Resource Server obtains an upstream token from the Gateway
       Authorization Server.  This is OPTIONAL, and is only necessary
       when the two components are separate deployments.
+
+   Additionally, when sender-constrained tokens are in use, the
+   assertion issued in (1) carries the aud_cnf claim defined in
+   Section 4.  This changes what the Identity Provider puts in the
+   assertion, but not the request the Client makes for it, nor anything
+   the Client does with it: a Client neither populates nor inspects this
+   claim.
 
 3.  Chained Identity Assertion Request
 
@@ -282,11 +322,20 @@ Table of Contents
    authorization_details:  OPTIONAL.  As defined in
       [I-D.ietf-oauth-identity-assertion-authz-grant].
 
+   dpop_jkt:  OPTIONAL.  The JWK SHA-256 Thumbprint of the key to which
+      the issued assertion is to be bound, as defined in Section 10 of
+      [RFC9449].  Used when the party that will present the issued
+      assertion is not the party making this request.  See Section 4.4.
+
    The Gateway Authorization Server MUST authenticate to the Identity
    Provider's token endpoint using a client identity registered with the
    Identity Provider for that purpose.  The actor_token parameter of
    [RFC8693] is not used; the acting party is established by client
    authentication.
+
+   When the subject_token is sender-constrained, the Gateway
+   Authorization Server MUST also include a DPoP proof as described in
+   Section 4.3.
 
    The following is a non-normative example.  Line breaks are for
    display purposes only.
@@ -325,19 +374,24 @@ Table of Contents
        redeeming an assertion issued to it from an unrelated party
        replaying an assertion it observed.
 
-   4.  Verify, according to policy configured by the Identity Provider's
+   4.  If the subject_token contains a cnf claim, verify the DPoP proof
+       against its aud_cnf claim as described in Section 4.3.  An
+       Identity Provider MUST NOT accept a sender-constrained
+       subject_token without such verification.
+
+   5.  Verify, according to policy configured by the Identity Provider's
        administrator, that the authenticated client is permitted to act
        as a Gateway for the requested audience, for the subject
        identified by the subject_token, and for the client identified by
        the client_id claim of the subject_token.
 
-   5.  Verify that the requested audience does not identify an
+   6.  Verify that the requested audience does not identify an
        authorization server operated by the authenticated client, so
        that an assertion cannot be chained to itself.
 
-   6.  Unless the Identity Provider's policy explicitly permits a longer
+   7.  Unless the Identity Provider's policy explicitly permits a longer
        chain, reject a subject_token that already contains an act claim.
-       See Section 6.2.
+       See Section 7.2.
 
    If any of these steps fails, the Identity Provider MUST respond with
    an error as described in Section 3.4.
@@ -371,6 +425,15 @@ Table of Contents
    client_id:  MUST be the identifier of the Gateway at the upstream
       Resource Authorization Server.  The Gateway, not the original
       Client, is the client that will present this grant.
+
+   cnf:  If the subject_token was sender-constrained, MUST bind the
+      issued assertion to the key determined as described in
+      Section 4.4, which is the key of the party that will present it
+      upstream and not the key in the cnf claim of the subject_token.
+
+   aud_cnf:  MUST NOT be present, unless the Identity Provider's policy
+      permits a further Gateway hop for the requested audience.  See
+      Section 7.2.
 
    act:  The Identity Provider SHOULD include an act claim, as defined
       in [RFC8693], identifying the Gateway as the acting party.
@@ -428,7 +491,144 @@ Table of Contents
    permitted to front, so that the error response cannot be used to
    enumerate the resources of an organization.
 
-4.  Retaining the Identity Assertion
+4.  Sender-Constrained Assertions
+
+   [I-D.ietf-oauth-identity-assertion-authz-grant] allows an ID-JAG to
+   be bound to a key using the cnf claim of [RFC7800], in which case
+   proof of possession of that key must be demonstrated when the
+   assertion is used.  A Gateway does not hold the Client's key, so it
+   cannot demonstrate possession of the key in the cnf claim of the
+   assertion it received.
+
+   An Identity Provider MUST NOT resolve this by accepting a sender-
+   constrained subject_token without proof of possession, which would
+   leave the assertion effectively unbound.  Instead, an assertion whose
+   audience is a Gateway names a second key, authorized for the single
+   additional use the Gateway makes of it.
+
+4.1.  The aud_cnf Claim
+
+   aud_cnf:  OPTIONAL.  A confirmation object using the syntax of the
+      cnf claim defined in [RFC7800], or an array of such objects.  It
+      identifies the key or keys that the party identified by the aud
+      claim MAY use when presenting this assertion as the subject_token
+      of a Chained Identity Assertion Request (Section 3).  Where an
+      array is used, possession of the key confirmed by any one member
+      is sufficient.
+
+   The name follows the convention of the aud_tenant and aud_sub claims
+   of [I-D.ietf-oauth-identity-assertion-authz-grant], in which the aud_
+   prefix denotes a value pertaining to the party identified by aud.
+
+   cnf and aud_cnf authorize different uses of the same assertion and
+   are not interchangeable:
+
+   *  cnf names the key that may be used to redeem the assertion as an
+      authorization grant, at the token endpoint identified by aud.
+      This is the Client's key.
+
+   *  aud_cnf names the key that may be used to present the assertion as
+      a subject_token in a Chained Identity Assertion Request.  This is
+      the Gateway's key.
+
+   An assertion carrying both is bound to two keys, each for one
+   purpose, rather than being unbound for either.
+
+   The following is a non-normative example of the claims of such an
+   assertion.
+
+   {
+     "iss": "https://idp.example",
+     "sub": "user@example.com",
+     "aud": "https://gateway.example",
+     "client_id": "client-at-gateway",
+     "jti": "5c6d2f8a1b",
+     "iat": 1789000000,
+     "exp": 1789000300,
+     "cnf":     { "jkt": "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I" },
+     "aud_cnf": { "jkt": "Rk1YbFRLQVBUbGhBTGtNbnJmZ3JIUHFEV3ZDR2NpUW8" }
+   }
+
+4.2.  Populating aud_cnf
+
+   When an Identity Provider issues an ID-JAG that includes a cnf claim,
+   and the aud of that assertion identifies an authorization server
+   operated by a party that its policy permits to make Chained Identity
+   Assertion Requests, the Identity Provider MUST include an aud_cnf
+   claim identifying the key or keys registered by that party for that
+   purpose.
+
+   An Identity Provider MUST NOT include aud_cnf in an assertion that
+   does not include cnf, as it would authorize nothing.
+
+   The value of aud_cnf is determined entirely by the Identity Provider
+   from the Gateway's registration.  A Client does not supply it, is not
+   required to know the Gateway's key, and does not inspect the
+   assertion it forwards.  The Client's request for the assertion is
+   unchanged from [I-D.ietf-oauth-identity-assertion-authz-grant].
+
+   If an assertion contains cnf but not aud_cnf, it is bound solely to
+   the Client and cannot be chained.  An Identity Provider MUST reject a
+   Chained Identity Assertion Request presenting such an assertion, with
+   the error described in Section 3.4.
+
+4.3.  Presenting a Sender-Constrained Assertion
+
+   When the subject_token of a Chained Identity Assertion Request
+   contains a cnf claim, the Gateway Authorization Server MUST include a
+   DPoP proof JWT in the DPoP header of the request, as described in
+   [RFC9449], with htm set to POST and htu set to the Identity
+   Provider's token endpoint.  The ath claim is not used, because the
+   subject_token is an assertion rather than an access token.
+
+   The key used for the DPoP proof need not be the key used for client
+   authentication; [RFC9449] treats these as independent.
+
+   The Identity Provider MUST:
+
+   1.  Validate the DPoP proof according to Section 4.3 of [RFC9449].
+
+   2.  Verify that the JWK SHA-256 Thumbprint of the key confirmed by
+       the proof matches a confirmation method in the aud_cnf claim of
+       the subject_token.
+
+   3.  NOT compare the proof against the cnf claim of the subject_token.
+       That claim confirms the Client's key, which the Gateway does not
+       hold and is not expected to prove.
+
+   If the subject_token contains cnf and the proof is absent, invalid,
+   or confirms a key not named by aud_cnf, the Identity Provider MUST
+   refuse the request with invalid_grant.
+
+4.4.  Binding of the Issued Assertion
+
+   The assertion issued in response to a Chained Identity Assertion
+   Request is presented upstream by the Gateway, so it MUST be bound to
+   the Gateway's key rather than the Client's.  An Identity Provider
+   that receives a DPoP proof or a dpop_jkt parameter on the request
+   MUST include a cnf claim in the issued assertion, determined as
+   follows:
+
+   *  If dpop_jkt is absent, the cnf claim MUST confirm the key
+      confirmed by the DPoP proof on the request.
+
+   *  If dpop_jkt is present, the cnf claim MUST confirm the key it
+      names, and the Identity Provider MUST verify that this key is
+      registered by the authenticated client.  This allows a Gateway
+      whose components hold distinct keys to obtain an assertion bound
+      to the component that will redeem it, without that component
+      making the request.  See Section 6.4.
+
+   The Gateway then redeems the issued assertion at the upstream
+   Resource Authorization Server, presenting a DPoP proof of the
+   confirmed key.  The Resource Authorization Server verifies that proof
+   against the assertion's cnf claim exactly as
+   [I-D.ietf-oauth-identity-assertion-authz-grant] already requires, and
+   MUST NOT be required to recognize aud_cnf or to behave differently in
+   any way.  The access token it issues is bound to the same key, and
+   the Gateway presents it to the Resource Server as any client would.
+
+5.  Retaining the Identity Assertion
 
    In order to make a Chained Identity Assertion Request at the time a
    resource request arrives, a Gateway Authorization Server needs the
@@ -455,7 +655,7 @@ Table of Contents
    A Gateway Authorization Server MUST NOT retain the ID-JAG beyond the
    lifetime of the access tokens issued in exchange for it.
 
-5.  Upstream Token Request
+6.  Upstream Token Request
 
    This section is OPTIONAL to implement.  It is required only when the
    Gateway Authorization Server and the Gateway Resource Server are
@@ -469,7 +669,7 @@ Table of Contents
    collapses to an internal operation when the two components are a
    single deployment.
 
-5.1.  Request
+6.1.  Request
 
    grant_type:  REQUIRED.  Value MUST be urn:ietf:params:oauth:grant-
       type:token-exchange.
@@ -492,7 +692,7 @@ Table of Contents
    The Gateway Resource Server MUST authenticate to the Gateway
    Authorization Server's token endpoint.
 
-5.2.  Processing
+6.2.  Processing
 
    The Gateway Authorization Server MUST:
 
@@ -503,13 +703,13 @@ Table of Contents
        that has not expired or been revoked.
 
    3.  Locate the ID-JAG associated with that access token, as described
-       in Section 4.
+       in Section 5.
 
    4.  Perform the Chained Identity Assertion Request of Section 3 for
        the requested audience, and redeem the resulting ID-JAG at the
        upstream Resource Authorization Server.
 
-5.3.  Response
+6.3.  Response
 
    The response is an OAuth 2.0 token response containing the upstream
    access token, with issued_token_type set to
@@ -521,9 +721,44 @@ Table of Contents
    MUST NOT return an access token for an audience other than the one
    requested.
 
-6.  Security Considerations
+6.4.  Sender-Constrained Upstream Tokens
 
-6.1.  Restriction to assertions issued to the Gateway
+   An upstream access token is bound to the key proven at the upstream
+   Resource Authorization Server's token endpoint, but it is the Gateway
+   Resource Server that presents it to the Resource Server.  When the
+   two components of a Gateway hold distinct keys, an access token
+   obtained by the Gateway Authorization Server cannot be used by the
+   Gateway Resource Server, which does not hold the key it is bound to.
+
+   Either of the following resolves this.  A Gateway whose components
+   are a single deployment has a single key and needs neither.
+
+   *  The two components share the key.  The Gateway Authorization
+      Server obtains the upstream access token as described above and
+      returns it.  This requires a private key to be usable by both
+      components, across the same deployment boundary this section
+      exists to accommodate.
+
+   *  The Gateway Resource Server redeems the assertion itself.  It
+      includes requested_token_type=urn:ietf:params:oauth:token-type:id-
+      jag in its request and a dpop_jkt parameter naming its own key.
+      The Gateway Authorization Server performs the Chained Identity
+      Assertion Request with that dpop_jkt (Section 4.4), and returns
+      the resulting assertion rather than an access token, with
+      issued_token_type set to urn:ietf:params:oauth:token-type:id-jag.
+      The Gateway Resource Server then redeems it at the upstream
+      Resource Authorization Server, proving its own key, and receives
+      an access token bound to that key.
+
+   Implementations SHOULD prefer the second, so that each key remains
+   held by one component only.  Nothing outside the Gateway is affected
+   by the choice: in both cases the upstream Resource Authorization
+   Server receives an assertion whose cnf claim confirms the key of the
+   party presenting it.
+
+7.  Security Considerations
+
+7.1.  Restriction to assertions issued to the Gateway
 
    The check in Section 3 that the subject_token's aud identifies an
    authorization server operated by the authenticated client is
@@ -533,7 +768,7 @@ Table of Contents
    with the policy check, the Identity Provider remains the only party
    that decides which resources a Gateway may reach.
 
-6.2.  Chain depth
+7.2.  Chain depth
 
    An Identity Provider that accepts an assertion already containing an
    act claim permits a Gateway behind a Gateway.  Each additional hop
@@ -543,7 +778,15 @@ Table of Contents
    required in Section 3, and treat longer chains as explicit
    configuration.
 
-6.3.  Aggregation of authority at the Gateway
+   The aud_cnf claim of Section 4 is subject to the same limit.
+   Including it in an issued assertion authorizes the next audience to
+   chain that assertion onward, so an Identity Provider MUST NOT include
+   it in an assertion it issues in response to a Chained Identity
+   Assertion Request unless its policy permits that further hop.  An
+   implementation that emits aud_cnf unconditionally would permit chains
+   of unbounded length.
+
+7.3.  Aggregation of authority at the Gateway
 
    A Gateway obtains access tokens for every upstream it fronts, for
    every subject currently using it.  Compromise of a Gateway therefore
@@ -557,16 +800,16 @@ Table of Contents
    lifetimes over long-lived ones, since the Client can obtain a fresh
    assertion without user interaction.
 
-6.4.  No refresh tokens
+7.4.  No refresh tokens
 
    Neither the Identity Provider (Section 3) nor the Gateway
-   Authorization Server (Section 5) issues a refresh token.  A Gateway
+   Authorization Server (Section 6) issues a refresh token.  A Gateway
    holding a refresh token could act for a subject with no Client
    driving it.  That is a different delegation from the one this grant
    expresses, and it would place a long-lived credential for every
    subject at the Gateway.
 
-6.5.  Subject binding of cached tokens
+7.5.  Subject binding of cached tokens
 
    A Gateway Resource Server that caches upstream access tokens, or that
    maintains protocol state such as session identifiers on behalf of a
@@ -576,14 +819,61 @@ Table of Contents
    would allow one subject to reach another's upstream tokens or session
    state.
 
-6.6.  Audience of tokens issued by the Gateway
+7.6.  Audience of tokens issued by the Gateway
 
    A Gateway Authorization Server SHOULD issue an access token whose
    audience identifies the specific protected resource the Client
    requested, rather than the Gateway as a whole, so that a token
    obtained for one upstream cannot be presented to reach another.
 
-6.7.  Client authentication at the Identity Provider
+7.7.  Dual binding of the Client's assertion
+
+   The aud_cnf claim means that two distinct keys can make use of one
+   assertion, so a disclosed assertion is usable by the holder of
+   either.  This is a smaller concession than it appears, and it is
+   materially different from waiving proof of possession:
+
+   *  Both keys are named in the assertion, by the Identity Provider, at
+      issuance.  Neither is inferred at the time of use, and an
+      assertion that names no second key cannot be chained at all.
+
+   *  The second key belongs to the Gateway, which the Identity
+      Provider's policy already permits to obtain assertions for that
+      subject and audience.  An attacker able to prove that key can
+      obtain such assertions directly and gains nothing further from the
+      disclosed assertion.
+
+   *  The two keys authorize different operations.  Possession of the
+      aud_cnf key permits only presenting the assertion as a
+      subject_token; it does not permit redeeming it as a grant at the
+      audience's token endpoint, which still requires the cnf key.
+
+   The binding that is genuinely relinquished is end-to-end binding to
+   the Client, and it is relinquished because the Gateway is a different
+   sender.  Tokens on the upstream side of a Gateway are bound to the
+   Gateway, and an upstream Resource Server that verifies proof of
+   possession learns that the presenter is the Gateway.  It does not
+   learn, and cannot be given by this mechanism, evidence that the
+   Client itself presented anything.  Where an upstream needs to
+   distinguish those cases, the act claim is what carries that
+   information, not the confirmation claims.
+
+7.8.  Key ownership within a Gateway
+
+   The two resolutions in Section 6.4 differ in their consequences.
+   Sharing one key between a Gateway's authorization server and resource
+   server means a compromise of either component yields a key that can
+   also act as the other.  Giving each component its own key and using
+   dpop_jkt confines a compromise to the affected component, at the cost
+   of one additional registered key.  Deployments SHOULD register
+   distinct keys.
+
+   An Identity Provider MUST verify that a key named by dpop_jkt is
+   registered by the authenticated client.  Without that check, a
+   Gateway could cause an assertion to be bound to a key held by an
+   unrelated party.
+
+7.9.  Client authentication at the Identity Provider
 
    The actor_token parameter of [RFC8693] is not used by this
    specification; the acting party is established by client
@@ -592,9 +882,40 @@ Table of Contents
    party cannot be impersonated by a party that has observed a
    credential in transit.
 
-7.  IANA Considerations
+8.  IANA Considerations
 
-   This document requires no new registrations.
+8.1.  JSON Web Token Claims Registration
+
+   This specification requests registration of the following claim in
+   the "JSON Web Token Claims" registry established by [RFC7519].
+
+   Claim Name:  aud_cnf
+
+   Claim Description:  Confirmation key of the party identified by the
+      audience
+
+   Change Controller:  IETF
+
+   Specification Document(s):  Section 4.1 of this document
+
+8.2.  OAuth Parameters Registration
+
+   The dpop_jkt parameter is registered in the "OAuth Parameters"
+   registry by [RFC9449] with a parameter usage location of
+   "authorization request".  This specification uses it in a token
+   request, and therefore requests that the following usage location be
+   added to the existing registration.
+
+   Parameter name:  dpop_jkt
+
+   Parameter usage location:  token request
+
+   Change Controller:  IETF
+
+   Specification Document(s):  Section 10 of [RFC9449] and Section 4.4
+      of this document
+
+8.3.  No new token type identifiers
 
    The value urn:ietf:params:oauth:token-type:id-jag, registered by
    [I-D.ietf-oauth-identity-assertion-authz-grant] in the "OAuth URI"
@@ -602,9 +923,9 @@ Table of Contents
    addition to its existing use as a requested_token_type and
    issued_token_type.  That use requires no additional registration.
 
-8.  References
+9.  References
 
-8.1.  Normative References
+9.1.  Normative References
 
    [I-D.ietf-oauth-identity-assertion-authz-grant]
               Parecki, A., McGuinness, K., and B. Campbell, "Identity
@@ -623,10 +944,19 @@ Table of Contents
               RFC 6749, DOI 10.17487/RFC6749, October 2012,
               <https://www.rfc-editor.org/rfc/rfc6749>.
 
+   [RFC7519]  Jones, M., Bradley, J., and N. Sakimura, "JSON Web Token
+              (JWT)", RFC 7519, DOI 10.17487/RFC7519, May 2015,
+              <https://www.rfc-editor.org/rfc/rfc7519>.
+
    [RFC7523]  Jones, M., Campbell, B., and C. Mortimore, "JSON Web Token
               (JWT) Profile for OAuth 2.0 Client Authentication and
               Authorization Grants", RFC 7523, DOI 10.17487/RFC7523, May
               2015, <https://www.rfc-editor.org/rfc/rfc7523>.
+
+   [RFC7800]  Jones, M., Bradley, J., and H. Tschofenig, "Proof-of-
+              Possession Key Semantics for JSON Web Tokens (JWTs)",
+              RFC 7800, DOI 10.17487/RFC7800, April 2016,
+              <https://www.rfc-editor.org/rfc/rfc7800>.
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
@@ -641,7 +971,12 @@ Table of Contents
               Indicators for OAuth 2.0", RFC 8707, DOI 10.17487/RFC8707,
               February 2020, <https://www.rfc-editor.org/rfc/rfc8707>.
 
-8.2.  Informative References
+   [RFC9449]  Fett, D., Campbell, B., Bradley, J., Lodderstedt, T.,
+              Jones, M., and D. Waite, "OAuth 2.0 Demonstrating Proof of
+              Possession (DPoP)", RFC 9449, DOI 10.17487/RFC9449,
+              September 2023, <https://www.rfc-editor.org/rfc/rfc9449>.
+
+9.2.  Informative References
 
    [RFC9728]  Jones, M.B., Hunt, P., and A. Parecki, "OAuth 2.0
               Protected Resource Metadata", RFC 9728,
@@ -688,8 +1023,17 @@ A.1.  Burden of implementation
       for it.
 
    Everything new is therefore confined to the Identity Provider and the
-   Gateway: one new subject token type at the Identity Provider, and one
-   internal exchange within the Gateway.
+   Gateway: one new subject token type at the Identity Provider, one
+   claim the Identity Provider adds to an assertion it already issues,
+   and one internal exchange within the Gateway.
+
+   The aud_cnf claim of Section 4 is held to the same standard.  A
+   Client neither populates nor reads it, so it changes nothing about
+   the request a Client makes or what it does with the result.  It
+   appears only in an assertion whose audience is a Gateway, so a
+   Resource Authorization Server never receives an assertion containing
+   it, and the assertion it does receive is bound to the key of the
+   party presenting it, which is what the base grant already requires.
 
 A.2.  Why the assertion, and not an access token
 
@@ -736,7 +1080,7 @@ A.4.  Absence of the user is the Client's problem, already solved
 
    So a Client can obtain a fresh assertion at any time, and a Gateway
    consequently receives a fresh, verifiable assertion at any time.  The
-   freshness constraint in Section 4 is not about whether a user is
+   freshness constraint in Section 5 is not about whether a user is
    present; it is only about the interval between one redemption and the
    next.
 
@@ -754,7 +1098,7 @@ A.6.  Separability of the Gateway's components
    resource server is conventionally private between those two
    components: it is settled by deployment, and the rest of the protocol
    does not change either way.  Preserving that property is what makes
-   Section 5 a token exchange rather than a private interface.
+   Section 6 a token exchange rather than a private interface.
 
    It also determines where each responsibility sits.  The Gateway
    Authorization Server is the only component that communicates with the
@@ -773,7 +1117,38 @@ A.6.  Separability of the Gateway's components
    would couple the two components through token lifetimes and the list
    of upstreams.
 
-A.7.  Reuse of the assertion
+A.7.  Sender constraining across a change of sender
+
+   Proof of possession binds a token to the party that presents it.  A
+   Gateway presents the upstream grant over its own connection, to its
+   own endpoint, using its own key, and it does not hold the Client's
+   key.  So the upstream artifacts are bound to the Gateway.  That is
+   not a gap in the mechanism; it is what the mechanism does when the
+   sender legitimately changes, and it is the same thing that happens
+   whenever any client obtains a token to make an onward call.
+
+   Once that is accepted, the problem narrows sharply.  Every artifact
+   in the flow has exactly one party that will present it, and binds to
+   that party's key in the ordinary way, with one exception: the
+   assertion the Client redeems at the Gateway is also the assertion the
+   Gateway presents as a subject token.  Two senders, one artifact.
+
+   Three ways to resolve that were considered.  Waiving proof of
+   possession for the Gateway leaves the assertion unbound in practice,
+   which defeats the purpose of constraining it.  Forwarding the
+   Client's own DPoP proof does not work, because a proof is bound to an
+   HTTP method and URI and the Identity Provider's token endpoint is
+   neither the ones the Client signed for.  Having the Client name the
+   Gateway's key would require the Client to know it, which violates the
+   constraint that Clients not change.
+
+   What remains is for the Identity Provider, which already knows both
+   parties and already decides whether this Gateway may act for this
+   audience, to name the second key itself.  The assertion then carries
+   two bindings for two uses, and no party has to accept an unproven
+   one.
+
+A.8.  Reuse of the assertion
 
    A Gateway fronting several upstreams does not know, when it issues an
    access token, which upstreams a Client will reach through it.
