@@ -4,7 +4,10 @@ This is the working area for an individual Internet-Draft extending
 [Cross App Access](https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/)
 to work when a **gateway** sits between the client and the resource server.
 
-* [**Read the draft**](draft-parecki-oauth-identity-assertion-gateways.md)
+* [**Draft source**](draft-parecki-oauth-identity-assertion-gateways.md)
+* [Editor's Copy](https://aaronpk.github.io/draft-parecki-oauth-identity-assertion-gateways/#go.draft-parecki-oauth-identity-assertion-gateways.html)
+* [Datatracker Page](https://datatracker.ietf.org/doc/draft-parecki-oauth-identity-assertion-gateways)
+* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-parecki-oauth-identity-assertion-gateways)
 
 The short version: a gateway needs its own access token for each resource behind it, on behalf of
 the same user. This draft defines one new token exchange at the Identity Provider that lets it get
