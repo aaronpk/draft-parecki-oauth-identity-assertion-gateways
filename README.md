@@ -11,8 +11,8 @@ to work when a **gateway** sits between the client and the resource server.
 
 The short version: a gateway needs its own access token for each resource behind it, on behalf of
 the same user. This draft defines one new token exchange at the Identity Provider that lets it get
-one, and nothing else. Clients and resource servers are unaffected, and no new identifiers are
-registered.
+one, plus one new claim so that sender-constrained tokens keep working across the gateway. Clients
+and resource servers are unaffected.
 
 ## The problem
 
@@ -153,8 +153,50 @@ server and resource server are separate deployments. An ordinary RFC 8693 token 
 collapses to an internal function call when the two are one process. This is what keeps the AS/RS
 split a private matter, as the second security constraint requires.
 
-That's the whole extension. Notably, it needs **no new IANA registrations**: the `id-jag` token
-type URI is already registered by the base spec, and this draft uses it in one additional position.
+**The `aud_cnf` claim** — needed only when tokens are sender-constrained with DPoP. See below.
+
+That's the whole extension. It defines no new grant type and no new token type: the `id-jag` token
+type URI is already registered by the base spec, and this draft simply uses it in one additional
+position. The only new identifier is the `aud_cnf` claim.
+
+### Sender-constrained tokens, and why one claim is needed
+
+DPoP binds a token to the party that will present it. A gateway is legitimately a *different*
+presenter — it calls the resource server over its own connection, with its own key, and it does not
+have the client's key. So tokens on the upstream side of a gateway are bound to the gateway. That
+isn't a gap; it's what proof-of-possession does when the sender genuinely changes.
+
+That leaves exactly one artifact in the whole flow that two different senders must be able to use:
+the assertion the client redeems at the gateway is also the assertion the gateway presents as a
+subject token. The client redeems it, then the gateway chains it.
+
+Waiving proof-of-possession there would leave that assertion effectively unbound, which defeats the
+point. Forwarding the client's own DPoP proof doesn't work either, because a proof is bound to an
+HTTP method and URI, and the IdP's token endpoint is neither of the ones the client signed for. And
+the client can't name the gateway's key, because the client must not have to know it.
+
+So the IdP — which already knows both parties, and already decides whether this gateway may act for
+this resource — names the second key itself, in a new `aud_cnf` claim:
+
+```json
+{
+  "aud": "https://gateway.example",
+  "cnf":     { "jkt": "<the client's key>" },
+  "aud_cnf": { "jkt": "<the gateway's key>" }
+}
+```
+
+The two claims authorize different operations on the same assertion. `cnf` permits redeeming it as a
+grant, which only the client can do. `aud_cnf` permits presenting it as a subject token, which only
+the gateway can do. The assertion is bound to two keys for two purposes rather than unbound for
+either, and every other artifact in the flow keeps a single, ordinary binding to whoever presents
+it.
+
+The constraints still hold. A client never populates or reads `aud_cnf` — it forwards the assertion
+untouched, so nothing about its request or its handling changes. And the claim appears only in an
+assertion whose audience is the gateway, so a resource AS never sees it: what *it* receives is an
+assertion whose `cnf` matches the proof of the party presenting it, which is exactly what the base
+spec already tells it to check.
 
 ### The whole flow, colour-coded
 
@@ -238,6 +280,10 @@ The point of the colours is that the amber total is the entire cost of supportin
 client or the resource AS, which is what the three requirements above demand. The one amber step
 inside the green block is internal to the gateway's authorization server and invisible to the
 client.
+
+DPoP proofs are omitted above for legibility. With sender-constrained tokens, each leg additionally
+carries a proof: the client signs with its own key through the green blocks, and the gateway signs
+with its own key from the chained exchange onward — the handoff `aud_cnf` authorizes.
 
 ## What it deliberately does not do
 
